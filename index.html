@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Espacio Mental | Relajación Guiada</title>
+    <meta name="description" content="Una herramienta simple para desconectar, respirar y encontrar calma.">
+    
+    <!-- Fuentes -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;600&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
+
+    <style>
+        /* --- VARIABLES Y RESET --- */
+        :root {
+            --bg-dark: #0f172a;
+            --bg-card: rgba(30, 41, 59, 0.85);
+            --accent: #38bdf8;
+            --accent-glow: rgba(56, 189, 248, 0.3);
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --success: #4ade80;
+            --error: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--bg-dark);
+            background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 70%);
+            font-family: 'Outfit', sans-serif;
+            color: var(--text-main);
+            overflow: hidden;
+            transition: background 1s ease;
+        }
+
+        /* --- FONDO ESTRELLADO ANIMADO --- */
+        .stars-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: twinkle var(--duration) infinite ease-in-out;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.2); }
+        }
+
+        /* --- CONTENEDOR PRINCIPAL --- */
+        .app-container {
+            position: relative;
+            z-index: 10;
+            width: 90%;
+            max-width: 450px;
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+            text-align: center;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .hidden {
+            display: none;
+            opacity: 0;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- TIPOGRAFÍA --- */
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            margin: 0 0 10px 0;
+            background: linear-gradient(to right, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .headphone-notice {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(56, 189, 248, 0.1);
+            color: var(--accent);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-bottom: 20px;
+        }
+
+        /* --- SELECTORES --- */
+        .label {
+            display: block;
+            text-align: left;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .grid-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .option-btn {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-muted);
+            padding: 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.85rem;
+        }
+
+        .option-btn span { font-size: 1.2rem; }
+
+        .option-btn:hover { background: rgba(255, 255, 255, 0.08); }
+
+        .option-btn.active {
+            background: rgba(56, 189, 248, 0.15);
+            border-color: var(--accent);
+            color: var(--accent);
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        /* --- BOTÓN PRINCIPAL --- */
+        .primary-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #38bdf8, #2563eb);
+            border: none;
+            border-radius: 16px;
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 20px rgba(37, 99, 235, 0.4);
+        }
+
+        .primary-btn:active { transform: scale(0.98); }
+        .primary-btn:disabled { opacity: 0.6; cursor: wait; }
+
+        .primary-btn.secondary {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: none;
+            margin-top: 10px;
+        }
+
+        /* --- PANTALLA ACTIVA (RESPIRACIÓN) --- */
+        .breathing-container {
+            height: 300px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .circle-outer {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            position: absolute;
+            transform: scale(1);
+        }
+
+        .circle-inner {
+            width: 120px;
+            height: 120px;
+            background: radial-gradient(circle, #38bdf8 0%, #2563eb 100%);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: white;
+            z-index: 2;
+            box-shadow: 0 0 30px var(--accent-glow);
+            transition: transform 4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Animaciones de Respiración */
+        .breathe-in .circle-inner { transform: scale(1.6); }
+        .breathe-in .circle-outer { animation: ripple 4s infinite ease-out; }
+        .breathe-out .circle-inner { transform: scale(1); }
+        
+        @keyframes ripple {
+            0% { transform: scale(1); opacity: 0.5; }
+            100% { transform: scale(2.5); opacity: 0; }
+        }
+
+        .instruction-text {
+            font-size: 1.5rem;
+            font-weight: 300;
+            margin-top: 20px;
+            min-height: 40px;
+            color: var(--text-main);
+        }
+
+        .timer-display {
+            font-size: 3rem;
+            font-weight: 200;
+            color: var(--text-muted);
+            font-variant-numeric: tabular-nums;
+            margin: 10px 0;
+        }
+
+        /* Control de Volumen */
+        .volume-control {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100px;
+            height: 4px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 2px;
+            outline: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+        }
+
+        /* Mensajes de Estado */
+        .status-message {
+            font-size: 0.75rem;
+            margin-top: 15px;
+            opacity: 0.7;
+            font-style: italic;
+            min-height: 20px;
+        }
+        
+        .error-message {
+            color: var(--error);
+            font-style: normal;
+            font-weight: bold;
+        }
+
+        /* --- PANTALLA FINAL --- */
+        .quote-box {
+            background: rgba(255,255,255,0.05);
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 3px solid var(--success);
+            margin: 20px 0;
+            font-style: italic;
+        }
+
+        .share-links {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .share-icon {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.8rem;
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 8px 15px;
+            border-radius: 20px;
+            transition: 0.3s;
+        }
+
+        .share-icon:hover { background: rgba(255,255,255,0.1); color: white; }
+
+    </style>
+</head>
+<body>
+
+    <div class="stars-container" id="stars"></div>
+
+    <!-- PANTALLA 1: CONFIGURACIÓN -->
+    <div class="app-container fade-in" id="screen-setup">
+        <div class="headphone-notice">
+            <span>🎧</span> Usa audífonos para mejor experiencia
+        </div>
+        <h1>Espacio Mental</h1>
+        <p>Tómate un momento para desconectar del ruido exterior y reconectar contigo mismo.</p>
+
+        <span class="label">Elige tu Ambiente</span>
+        <div class="grid-options" id="sound-options">
+            <div class="option-btn active" onclick="selectSound(this, 'rain')"><span>🌧️</span>Lluvia</div>
+            <div class="option-btn" onclick="selectSound(this, 'ocean')"><span>🌊</span>Mar</div>
+            <div class="option-btn" onclick="selectSound(this, 'forest')"><span>🌲</span>Bosque</div>
+            <div class="option-btn" onclick="selectSound(this, 'night')"><span>🦗</span>Noche</div>
+            <div class="option-btn" onclick="selectSound(this, 'fire')"><span>🔥</span>Fuego</div>
+        </div>
+
+        <span class="label">Duración</span>
+        <div class="grid-options">
+            <div class="option-btn active" onclick="selectTime(this, 60)">1 min</div>
+            <div class="option-btn" onclick="selectTime(this, 180)">3 min</div>
+            <div class="option-btn" onclick="selectTime(this, 300)">5 min</div>
+        </div>
+
+        <button class="primary-btn" id="start-btn" onclick="startSession()">Iniciar Sesión</button>
+        <div class="status-message" id="audio-status"></div>
+    </div>
+
+    <!-- PANTALLA 2: SESIÓN ACTIVA -->
+    <div class="app-container hidden" id="screen-active">
+        <div class="breathing-container" id="visuals">
+            <div class="circle-outer"></div>
+            <div class="circle-outer" style="animation-delay: 1s"></div>
+            <div class="circle-inner" id="breath-word">Inhala</div>
+        </div>
+
+        <h2 class="instruction-text" id="instruction">Respira profundo...</h2>
+        <div class="timer-display" id="timer">01:00</div>
+
+        <div class="volume-control">
+            <span style="font-size: 0.8rem">🔈</span>
+            <input type="range" min="0" max="1" step="0.1" value="0.5" oninput="setVolume(this.value)">
+            <span style="font-size: 0.8rem">🔊</span>
+        </div>
+
+        <button class="primary-btn secondary" onclick="endSession(true)" style="width: auto; padding: 10px 30px; margin-top: 20px;">
+            Terminar
+        </button>
+    </div>
+
+    <!-- PANTALLA 3: CONCLUSIÓN -->
+    <div class="app-container hidden" id="screen-end">
+        <h1>Sesión Completa</h1>
+        <p>Has dedicado este tiempo para ti. Lléva esta calma contigo el resto del día.</p>
+        
+        <div class="quote-box">
+            <p id="random-quote" style="margin:0; color: #e2e8f0; font-size: 1rem;">"La tranquilidad perfecta consiste en el buen orden de la mente."</p>
+            <div style="text-align: right; margin-top: 10px; font-size: 0.8rem; opacity: 0.7;">— Marco Aurelio</div>
+        </div>
+
+        <div class="share-links">
+            <a href="#" onclick="shareApp('fb')" class="share-icon">Compartir en Facebook</a>
+            <a href="#" onclick="copyLink()" class="share-icon">Copiar Enlace</a>
+        </div>
+
+        <button class="primary-btn" onclick="resetApp()" style="margin-top: 25px;">Nueva Sesión</button>
+    </div>
+
+    <!-- Audio Element sin Crossorigin para máxima compatibilidad -->
+    <audio id="audio-player" loop></audio>
+
+    <script>
+        // --- CONFIGURACIÓN Y ESTADO ---
+        // Nuevos enlaces de Mixkit (CDN rápida y confiable)
+        const sounds = {
+            'rain': 'https://assets.mixkit.co/sfx/preview/mixkit-light-rain-loop-1253.mp3',
+            'ocean': 'https://assets.mixkit.co/sfx/preview/mixkit-sea-waves-loop-1196.mp3',
+            'forest': 'https://assets.mixkit.co/sfx/preview/mixkit-forest-stream-1213.mp3',
+            'night': 'https://assets.mixkit.co/sfx/preview/mixkit-crickets-and-insects-in-the-wild-ambience-39.mp3',
+            'fire': 'https://assets.mixkit.co/sfx/preview/mixkit-campfire-crackling-1288.mp3'
+        };
+
+        const quotes = [
+            "La calma no es la ausencia de caos, es la gestión del caos.",
+            "Respira. Es solo un mal día, no una mala vida.",
+            "Casi todo volverá a funcionar si lo desconectas un momento, incluso tú.",
+            "La paz viene de adentro. No la busques afuera. - Buda",
+            "No te apures, no te preocupes. Solo estás aquí de visita.",
+            "El silencio es una fuente de gran fuerza. - Lao Tse",
+            "La felicidad depende de nosotros mismos. - Aristóteles"
+        ];
+
+        let state = {
+            sound: 'rain',
+            duration: 60,
+            timeLeft: 60,
+            timerInterval: null,
+            breathInterval: null
+        };
+
+        const player = document.getElementById('audio-player');
+        const statusMsg = document.getElementById('audio-status');
+        const startBtn = document.getElementById('start-btn');
+
+        // --- INTERFAZ ESTRELLAS ---
+        function createStars() {
+            const container = document.getElementById('stars');
+            for(let i=0; i<40; i++){
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.width = Math.random() * 3 + 'px';
+                star.style.height = star.style.width;
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.setProperty('--duration', (Math.random() * 3 + 2) + 's');
+                container.appendChild(star);
+            }
+        }
+        createStars();
+
+        // --- LÓGICA DE SELECCIÓN ---
+        function selectSound(el, soundKey) {
+            document.querySelectorAll('#sound-options .option-btn').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            state.sound = soundKey;
+            // Precargar audio para prueba
+            player.src = sounds[soundKey];
+            statusMsg.innerText = "Audio seleccionado...";
+            statusMsg.className = "status-message";
+        }
+
+        function selectTime(el, seconds) {
+            document.querySelectorAll('.grid-options:last-of-type .option-btn').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            state.duration = seconds;
+        }
+
+        function setVolume(val) {
+            player.volume = val;
+        }
+
+        // --- LÓGICA DE SESIÓN ---
+        function startSession() {
+            statusMsg.style.display = 'block';
+            statusMsg.innerText = "Conectando audio...";
+            statusMsg.className = "status-message";
+            startBtn.disabled = true;
+
+            // Asegurar URL actual
+            if(!player.src || player.src === "") player.src = sounds[state.sound];
+            player.volume = 0.5;
+            
+            // Intentar reproducir
+            const playPromise = player.play();
+
+            if (playPromise !== undefined) {
+                playPromise.then(_ => {
+                    // Éxito
+                    console.log("Audio iniciado correctamente.");
+                    statusMsg.innerText = "";
+                    startBtn.disabled = false;
+                    
+                    switchScreen('screen-setup', 'screen-active');
+                    state.timeLeft = state.duration;
+                    updateTimerDisplay();
+                    startTimers();
+
+                }).catch(error => {
+                    // Error
+                    console.error("Error reproduciendo audio:", error);
+                    startBtn.disabled = false;
+                    statusMsg.innerText = "⚠️ El audio no pudo cargar. Sube este archivo a la web.";
+                    statusMsg.className = "status-message error-message";
+                });
+            }
+        }
+
+        function startTimers() {
+            // Timer principal
+            state.timerInterval = setInterval(() => {
+                state.timeLeft--;
+                updateTimerDisplay();
+                if(state.timeLeft <= 0) endSession();
+            }, 1000);
+
+            // Ciclo de respiración
+            runBreathCycle();
+            state.breathInterval = setInterval(runBreathCycle, 8000);
+        }
+
+        function updateTimerDisplay() {
+            const m = Math.floor(state.timeLeft / 60).toString().padStart(2, '0');
+            const s = (state.timeLeft % 60).toString().padStart(2, '0');
+            document.getElementById('timer').innerText = `${m}:${s}`;
+        }
+
+        function runBreathCycle() {
+            const container = document.getElementById('visuals');
+            const word = document.getElementById('breath-word');
+            const instruction = document.getElementById('instruction');
+
+            // Inhala (4s)
+            container.classList.add('breathe-in');
+            container.classList.remove('breathe-out');
+            word.innerText = "Inhala";
+            instruction.innerText = "Llena tus pulmones de calma...";
+
+            // Exhala (4s después)
+            setTimeout(() => {
+                container.classList.remove('breathe-in');
+                container.classList.add('breathe-out');
+                word.innerText = "Exhala";
+                instruction.innerText = "Suelta toda la tensión...";
+            }, 4000);
+        }
+
+        function endSession(early = false) {
+            clearInterval(state.timerInterval);
+            clearInterval(state.breathInterval);
+            
+            const fadeAudio = setInterval(() => {
+                if(player.volume > 0.05) {
+                    player.volume -= 0.05;
+                } else { 
+                    clearInterval(fadeAudio); 
+                    player.pause(); 
+                    player.currentTime = 0;
+                }
+            }, 100);
+
+            if(early) {
+                switchScreen('screen-active', 'screen-setup');
+            } else {
+                const rand = Math.floor(Math.random() * quotes.length);
+                document.getElementById('random-quote').innerText = `"${quotes[rand]}"`;
+                switchScreen('screen-active', 'screen-end');
+            }
+        }
+
+        function resetApp() {
+            switchScreen('screen-end', 'screen-setup');
+        }
+
+        function switchScreen(fromId, toId) {
+            const fromEl = document.getElementById(fromId);
+            const toEl = document.getElementById(toId);
+            
+            fromEl.classList.remove('fade-in');
+            fromEl.style.opacity = '0';
+            
+            setTimeout(() => {
+                fromEl.classList.add('hidden');
+                toEl.classList.remove('hidden');
+                toEl.classList.add('fade-in');
+                toEl.style.opacity = '1';
+            }, 500);
+        }
+
+        // --- COMPARTIR ---
+        function shareApp(platform) {
+            const url = encodeURIComponent(window.location.href);
+            if(platform === 'fb') {
+                window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
+            }
+        }
+
+        function copyLink() {
+            navigator.clipboard.writeText(window.location.href).then(() => {
+                alert("Enlace copiado al portapapeles");
+            });
+        }
+    </script>
+</body>
+</html>
