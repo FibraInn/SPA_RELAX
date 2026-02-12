@@ -166,6 +166,18 @@
             text-align: left;
         }
 
+        /* --- CONTADOR VISITAS --- */
+        .counter-box {
+            margin-top: 25px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            background: rgba(0,0,0,0.2);
+            padding: 8px 15px;
+            border-radius: 20px;
+            display: inline-block;
+            letter-spacing: 0.5px;
+        }
+
         /* --- PANTALLA FIN --- */
         .quote-container {
             background: rgba(255,255,255,0.05); padding: 25px;
@@ -204,6 +216,15 @@
 
         <button class="primary-btn" id="btn-start" onclick="startExperience()">Iniciar Sesión</button>
         <div class="status-msg" id="error-msg"></div>
+
+        <!-- CONTADOR -->
+        <div class="counter-box">
+            <span id="busuanzi_container_site_pv" style="display:none;">
+                👥 Visitas: <span id="busuanzi_value_site_pv" style="color: var(--accent); font-weight: bold;">--</span>
+            </span>
+            <!-- Fallback visual si el script no carga rápido -->
+            <span id="local_counter" style="display:none;">👥 Visitas: 1 (Tú)</span>
+        </div>
     </div>
 
     <!-- PANTALLA 2: EXPERIENCIA -->
@@ -237,15 +258,16 @@
         </div>
 
         <button class="primary-btn" onclick="location.reload()">Nueva Sesión</button>
-        <div style="margin-top:20px; font-size:0.7rem; opacity:0.5">Versión Local V.3</div>
+        <div style="margin-top:20px; font-size:0.7rem; opacity:0.5">Versión Local V.4</div>
     </div>
 
     <audio id="audio-player" loop preload="auto"></audio>
 
+    <!-- Script de Busuanzi para el contador -->
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
     <script>
         // --- RUTAS DE ARCHIVOS LOCALES ---
-        // IMPORTANTE: Asegúrate de que los archivos en tu carpeta "sonidos"
-        // tengan estos nombres EXACTOS (en minúsculas).
         const sounds = {
             'rain': 'sonidos/lluvia.mp3',
             'ocean': 'sonidos/mar.mp3',
@@ -274,6 +296,12 @@
             s.style.width = Math.random()*3+'px'; s.style.height = s.style.width;
             s.style.animationDuration = (Math.random()*3+2)+'s';
             stars.appendChild(s);
+        }
+
+        // --- LOGICA DEL CONTADOR (FALLBACK) ---
+        // Si estamos en local (file://), busuanzi no funciona, mostramos un contador local
+        if (window.location.protocol === 'file:') {
+            document.getElementById('local_counter').style.display = 'inline';
         }
 
         // --- INTERACCIÓN ---
@@ -314,7 +342,6 @@
                 btn.disabled = false;
                 btn.innerText = "Reintentar";
                 err.style.display = 'block';
-                // Mensaje detallado para ayudar a corregir
                 err.innerHTML = `
                     ❌ <b>No se encuentra el archivo.</b><br>
                     1. Verifica que la carpeta se llame <code>sonidos</code><br>
