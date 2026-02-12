@@ -39,7 +39,7 @@
             font-family: 'Outfit', sans-serif;
             color: var(--text-main);
             overflow: hidden;
-            transition: background 1.5s ease; /* Transición suave de color */
+            transition: background 1.5s ease;
         }
 
         /* --- ESTRELLAS DE FONDO --- */
@@ -53,7 +53,7 @@
         }
         @keyframes twinkle { 0%, 100% { opacity: 0.2; } 50% { opacity: 0.6; } }
 
-        /* --- TARJETA PRINCIPAL (GLASSMORPHISM) --- */
+        /* --- TARJETA PRINCIPAL --- */
         .app-container {
             position: relative; z-index: 10;
             width: 90%; max-width: 420px;
@@ -95,7 +95,6 @@
         .grid-options {
             display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 25px;
         }
-        /* Fuego ocupa todo el ancho abajo */
         .grid-options.sounds { grid-template-columns: 1fr 1fr 1fr 1fr; }
         .grid-options.sounds .full-width { grid-column: span 4; }
 
@@ -148,7 +147,6 @@
             z-index: 2; transition: all 4s ease-in-out;
         }
         
-        /* Animación */
         .breathe-in .circle-core { transform: scale(1.5); }
         .breathe-in .circle-ring { animation: ripple 4s infinite ease-out; }
         .breathe-out .circle-core { transform: scale(1); opacity: 0.6; }
@@ -160,13 +158,15 @@
 
         .timer-big { font-size: 3.5rem; font-weight: 200; font-variant-numeric: tabular-nums; letter-spacing: -2px; }
 
-        /* --- ESTADOS --- */
+        /* --- MENSAJES DE ESTADO --- */
         .status-msg {
             font-size: 0.8rem; margin-top: 15px; min-height: 20px;
             color: #ef4444; font-weight: 500; display: none;
+            background: rgba(239,68,68,0.1); padding: 8px; border-radius: 8px;
+            text-align: left;
         }
 
-        /* --- SHARE --- */
+        /* --- PANTALLA FIN --- */
         .quote-container {
             background: rgba(255,255,255,0.05); padding: 25px;
             border-radius: 20px; margin: 20px 0; border-left: 3px solid var(--accent);
@@ -203,7 +203,7 @@
         </div>
 
         <button class="primary-btn" id="btn-start" onclick="startExperience()">Iniciar Sesión</button>
-        <div class="status-msg" id="error-msg">⚠️ Audio bloqueado localmente. Sube a la web.</div>
+        <div class="status-msg" id="error-msg"></div>
     </div>
 
     <!-- PANTALLA 2: EXPERIENCIA -->
@@ -217,7 +217,7 @@
         <h2 style="font-weight: 300; margin-top: 0;" id="instruction">Respira profundo</h2>
         <div class="timer-big" id="timer-display">01:00</div>
 
-        <!-- Control de volumen simple -->
+        <!-- Control Volumen -->
         <input type="range" min="0" max="1" step="0.05" value="0.5" 
                oninput="player.volume = this.value" 
                style="width: 150px; accent-color: var(--accent); opacity: 0.7; margin-top: 20px;">
@@ -237,22 +237,21 @@
         </div>
 
         <button class="primary-btn" onclick="location.reload()">Nueva Sesión</button>
-        
-        <div style="margin-top: 20px; font-size: 0.8rem; opacity: 0.5;">
-            Creado con ❤️ para relajarte
-        </div>
+        <div style="margin-top:20px; font-size:0.7rem; opacity:0.5">Versión Local V.3</div>
     </div>
 
-    <audio id="audio-player" loop crossorigin="anonymous"></audio>
+    <audio id="audio-player" loop preload="auto"></audio>
 
     <script>
-        // --- DATOS ---
+        // --- RUTAS DE ARCHIVOS LOCALES ---
+        // IMPORTANTE: Asegúrate de que los archivos en tu carpeta "sonidos"
+        // tengan estos nombres EXACTOS (en minúsculas).
         const sounds = {
-            'rain': 'https://assets.mixkit.co/sfx/preview/mixkit-light-rain-loop-1253.mp3',
-            'ocean': 'https://assets.mixkit.co/sfx/preview/mixkit-sea-waves-loop-1196.mp3',
-            'forest': 'https://assets.mixkit.co/sfx/preview/mixkit-forest-stream-1213.mp3',
-            'night': 'https://assets.mixkit.co/sfx/preview/mixkit-crickets-and-insects-in-the-wild-ambience-39.mp3',
-            'fire': 'https://assets.mixkit.co/sfx/preview/mixkit-campfire-crackling-1288.mp3'
+            'rain': 'sonidos/lluvia.mp3',
+            'ocean': 'sonidos/mar.mp3',
+            'forest': 'sonidos/bosque.mp3',
+            'night': 'sonidos/noche.mp3',
+            'fire': 'sonidos/fuego.mp3'
         };
 
         const quotes = [
@@ -279,11 +278,8 @@
 
         // --- INTERACCIÓN ---
         function setTheme(key, el) {
-            // Cambiar Botones
             document.querySelectorAll('.grid-options.sounds .option-btn').forEach(b => b.classList.remove('active'));
             el.classList.add('active');
-            
-            // Cambiar Tema (Fondo y Colores)
             document.body.className = `theme-${key}`;
             state.sound = key;
         }
@@ -302,23 +298,29 @@
             btn.innerText = "Cargando...";
             err.style.display = 'none';
 
-            // Cargar Audio
-            player.src = sounds[state.sound];
+            // Cargar Audio Local
+            const audioPath = sounds[state.sound];
+            player.src = audioPath;
             player.volume = 0.5;
 
+            // Intentar reproducir
             player.play().then(() => {
-                // Éxito
                 goToScreen('screen-active');
                 state.timeLeft = state.duration;
                 runTimer();
                 runBreathing();
             }).catch(e => {
-                // Fallo (Local)
                 console.error(e);
                 btn.disabled = false;
                 btn.innerText = "Reintentar";
                 err.style.display = 'block';
-                err.innerText = "⚠️ Audio bloqueado. Súbelo a GitHub Pages para escuchar.";
+                // Mensaje detallado para ayudar a corregir
+                err.innerHTML = `
+                    ❌ <b>No se encuentra el archivo.</b><br>
+                    1. Verifica que la carpeta se llame <code>sonidos</code><br>
+                    2. Verifica que el archivo sea <code>${audioPath.split('/')[1]}</code><br>
+                    3. Recuerda: en GitHub "Lluvia.mp3" es diferente a "lluvia.mp3".
+                `;
             });
         }
 
@@ -343,13 +345,11 @@
             const instr = document.getElementById('instruction');
 
             function cycle() {
-                // Inhala (4s)
                 visual.classList.add('breathe-in');
                 visual.classList.remove('breathe-out');
                 text.innerText = "Inhala";
                 instr.innerText = "Llena tus pulmones...";
 
-                // Exhala (4s)
                 state.timers.push(setTimeout(() => {
                     visual.classList.remove('breathe-in');
                     visual.classList.add('breathe-out');
@@ -365,16 +365,14 @@
             state.timers.forEach(t => clearInterval(t));
             state.timers.forEach(t => clearTimeout(t));
             
-            // Fade out audio
             let fade = setInterval(() => {
                 if(player.volume > 0.05) player.volume -= 0.05;
                 else { clearInterval(fade); player.pause(); }
             }, 100);
 
             if(early) {
-                location.reload(); // Reiniciar rápido
+                location.reload();
             } else {
-                // Mostrar frase random
                 const q = quotes[Math.floor(Math.random()*quotes.length)];
                 document.getElementById('quote-text').innerText = `"${q.t}"`;
                 document.getElementById('quote-author').innerText = q.a;
